@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-mimi-server
+  namespace: new-namespace
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: app-python
+  template:
+    metadata:
+      labels:
+        app: app-python
+    spec:
+      containers:
+      - name: app-python
+        image: {{ .Values.imageName }}
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        env:
+          - name: UUID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: AUTHOR
+            value: {{.Values.author}}
