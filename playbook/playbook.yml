@@ -1,13 +1,13 @@
 -
-  hosts: localhost
+  hosts: local
   vars:
     ssh_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCfrfE0OluoNHb5dOpV4RpWmVXvMBWc17kaM7DDjCm7romNQMDX95i5Fc67Q3c47pvrm/qi/ZqsCeqNdLl5+VV41rVz701Pj/UUr2FZpIm80Ur0iM1DFy81GKo/lS1INopqdd4KvUnM2d8yqfJSm9m5Cq7AM9S0mqObuMayfqNR4YcOlm9fnEMqhrSWbBVvdghPNiBzs7T9RzEq/0w8rs743tCF7MICv72fdgYadrGlxFsFWSujwZXQLI4VUSxKirJBCUgfR0u84gZK/wUzJ4EPqMichniTf24AsvidozUHWMDmQ+pUaBTyxjD5egi8LcV0EHH4feHwzacA2gyGbOtFK3wpa/dgE1yvPTkPKnccIXKnbel0mfxfsBVkclc5/DnczmrdaGrX5DCrQbI+HO4lhr4KzAm/pw6qfLcw8KjCdVKsnCRXykdat8KUwNAeolknRWdKDqdsbyXBj+ePMTlMR8YmoBj9znYWwOnAAyu56utiteL0oq9YPkb7ZGF5ZOE=
   tasks:
     - name: add_user # 1 task
       user: 
         name: cloudru
-        password: cloudpass
-
+        password: "{{ password | password_hash('sha512') }}"
+      become: true
 
     - name: access_denied_root # 3 task
       lineinfile:
@@ -16,6 +16,7 @@
         line: 'PermitRootLogin no'
         state: present
         backup: yes
+      become: true
       notify:
         - restart_SSH_service
 
@@ -25,6 +26,7 @@
         dest: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
 
     - name: copy_public_key
+      become: true
       authorized_key:
         user: cloudru
         key: "{{ lookup('file', ansible_user_dir + '/.ssh/id_rsa.pub') }}"
